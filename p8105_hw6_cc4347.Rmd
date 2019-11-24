@@ -10,7 +10,9 @@ output: github_document
 
 ## Load and Clean Dataset
 ```{r}
-
+#Load libraries
+  library(tidyverse)
+  library(dplyr)
 ```
 
 ## Regression Model for Birthweight
