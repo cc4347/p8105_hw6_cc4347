@@ -41,6 +41,7 @@ birth = read_csv("birthweight.csv") %>%
 
 sum(is.na(birth))
 ```
+
 Recoded variables for sex, race of both parents, and presence of malformations. There isn't any missing data.
 
 ## Regression Model for Birthweight
