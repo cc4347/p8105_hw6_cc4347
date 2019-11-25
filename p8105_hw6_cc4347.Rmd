@@ -54,7 +54,8 @@ birth %>%
   modelr::add_predictions(model_1) %>%
   ggplot(aes(x = pred, y = resid)) + geom_violin() + geom_hline(yintercept = 0, color = "peru")
 ```
-Describe modeling process: I decided to create a model that considered many known possible underlying factors for low birthweight, which means that it adjusts for all of the variables included. Consequently, the result of this regression may be quite far from a crude estimate of birth weight assessed from a single (or few) variable(s) of interest. The plot of predicted values against residuals shows relatively constant variance from 0. Roughly it appears that most data points fall between -500-0 and 0-500 with what appears to be a few outliers dkewing the distribution in both a positive and negative direction. The skew is much stronger in the positive.
+
+Describe modeling process: I decided to create a model that considered many known possible underlying factors for low birthweight, which means that it adjusts for all of the variables included. Consequently, the result of this regression may be quite far from a crude estimate of birth weight assessed from a single (or few) variable(s) of interest. The plot of predicted values against residuals shows relatively constant variance from 0. Roughly it appears that most data points fall between -500-0 and 0-500 (on y-axis) with what appears to be a few outliers skewing the distribution in both a positive and negative direction (stronger skew in positive).
 
 ## Comparing Models
 
@@ -91,7 +92,8 @@ crossv_mc(birth, 100)  %>%
     ggplot(aes(x = model, y = rmse)) +
   geom_violin()
 ```
-By plotting all three models against their respective RMSE (root mean squared errors), we can see which is the best fit for the data. In this case, Model 1 exhibits the lowest RMSE, which means it has the least RMSE variation.
+
+By plotting all three models against their respective RMSE (root mean squared errors), we can see which is the best fit for the data. In this case, Model 1 exhibits the lowest RMSE, which indicates that the observed data points are closest to those predicted in this model.
 
 
 # Problem 2: Weather Data Bootstrap
@@ -113,6 +115,49 @@ weather_df =
 
 ## Bootstrapping
 ```{r}
+boot_sample = function(df) {
+  sample_frac(df, replace = TRUE)
+}
+boots = data_frame(
+  strap_number = 1:5000,
+  strap_sample = rerun(5000, boot_sample(weather_df))
+)
+boots_results = boots %>%
+  mutate(models = map(strap_sample, ~lm(tmax ~ tmin, data = .x)),
+         results_glance =  map(models, broom::glance),
+         result_tidy = map(models, broom::tidy)
+         ) %>%
+  select(-strap_sample, -models) %>%
+  unnest() %>%
+  select(strap_number, r.squared, term, estimate) %>%
+  pivot_wider(names_from = "term",
+              values_from = "estimate") %>%
+  janitor::clean_names() %>%
+  mutate(logB = log(intercept * tmin))
 
+boots_results %>%
+  summarise("R^2" = mean(r_squared),
+            "Log(B0 * B1)" = mean(logB)) %>%
+  knitr::kable(digits = 3)
+r_squared= boots_results %>%
+  ggplot(aes(x = r_squared)) +
+  geom_histogram(alpha = 0.6, color = "peru") +
+  xlab("Estimate R^2") 
+log= boots_results %>%
+  ggplot(aes(x = logB)) +
+  geom_histogram(alpha = 0.6, color = "peru") +
+  xlab("Log of Parameter")
+r_squared
+log
+```
+
+Visually both histograms appear to be Normally distributed, although there may be the slightly more left tail skew with the R^2 plot. That plot is centered at 0.911 while the Log(B0*B1) plot is centered at 2.013.
+
+## Identify Quantiles (2.5% and 97.5%)
+```{r}
+quantile(pull(boots_results, r_squared), probs = c(.025, .975)) %>% 
+    knitr::kable(digits = 3)
+quantile(pull(boots_results, logB), probs = c(.025, .975)) %>% 
+    knitr::kable(digits = 3)
 ```
 
