@@ -93,7 +93,7 @@ crossv_mc(birth, 100)  %>%
   geom_violin()
 ```
 
-By plotting all three models against their respective RMSE (root mean squared errors), we can see which is the best fit for the data. In this case, Model 1 exhibits the lowest RMSE, which indicates that the observed data points are closest to those predicted in this model.
+By plotting all three models against their respective RMSE (root mean squared errors), we can see which is the best fit for the data. In this case, Model 1 exhibits the lowest RMSE, which indicates that the observed data points are closest to those predicted in this model. This may be due to the fact that adding more variables to a model often gets you closer to a better overall fit; however, overfitting like this isn't always an ideal practice. Model 3 shows the second best fit to the data and considered only 3 variables and their interaction as opposed to the 12 varaibles used in Model 1.
 
 
 # Problem 2: Weather Data Bootstrap
@@ -161,3 +161,4 @@ quantile(pull(boots_results, logB), probs = c(.025, .975)) %>%
     knitr::kable(digits = 3)
 ```
 
+As can be expected because their disributions are unique, the calculated quantiles differ, and the Log(B0*B1) plot has higher quantiles since its distribution is centered around a higher value.
